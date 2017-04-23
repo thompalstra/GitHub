@@ -1,3 +1,7 @@
 RewriteEngine on
+
+RewriteCond %{HTTP_HOST}$1 ^(.*)\.(.*)\.(.*)
+RewriteRule .* %2/index.php [L]
+
 RewriteCond %{HTTP_HOST}$1 ^(.*)\.(.*)
 RewriteRule .* %1/index.php [L]
