@@ -2,8 +2,8 @@ RewriteEngine on
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{HTTP_HOST}$1 ^(.*)\.(.*)\.git$
-RewriteRule .* %2/?subdomain=%1 [L,NC]
+RewriteRule .* %2/index.php?subdomain=%1 [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{HTTP_HOST}$1 ^(.*)\.git$
-RewriteRule .* %1/?subdomain=front [L,QSA]
+RewriteRule .* %1/index.php?subdomain=front [L]
