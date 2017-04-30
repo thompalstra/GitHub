@@ -1,59 +1,5 @@
 <?php
-function randomHex(){
-    $a = range('a', 'f');
-    $b = range(0,9);
-
-    $r = array_merge($a, $b);
-    $out = '#';
-    $i = 0;
-    while($i < 6){
-        $out .= $r[array_rand($r,1)];
-        $i++;
-    }
-    return $out;
-}
-
-
-function createDirs(){
-    $out = '';
-    $dirs = array_filter(glob('*'), 'is_dir');
-
-    $groups = [];
-    foreach($dirs as $dir){
-        $sn = substr($dir, 0, strpos($dir, '-'));
-        if(!empty($sn)){
-            if(!isset($groups[$sn])){
-                $groups[$sn][] = $dir;
-            } else {
-                $groups[$sn][] = $dir;
-            }
-        } else {
-            $groups[0][] = $dir;
-        }
-    }
-
-    foreach($groups as $key => $group){
-        $name = ($key === 0) ? 'General' : $key;
-        $line = "<div class='group-header' data-group='$key'><h4>$name</h4>";
-        $line .= "<div class='go-visit-outer'>";
-        foreach($group as $dir){
-            $sn = substr($dir, 0, strpos($dir, '-'));
-
-            $bgC = randomHex();
-
-            $line .= "<div class='go-visit' style='background-color:$bgC'>";
-            $line .= "<h2 style='color: white; text-align: center; text-shadow: 0px 0px 4px rgba(150, 150, 150, 1);'>".$dir."</h2>";
-            $line .= "<a href='//$dir.git/'>";
-            $line .= "<div class='go-visit-pop'></div>";
-            $line .= "</a>";
-            $line .= "</div>";
-        }
-        $line .= "</div>";
-        $line .= "</div>";
-        $out .= $line;
-    }
-    return $out;
-}
+include("autoloader.php");
 ?>
 
 <html>
@@ -72,6 +18,7 @@ function createDirs(){
         }
         .go-visit > a{
             background-color: inherit;
+            text-decoration: none;
         }
         .go-visit-pop{
             text-align: center;
@@ -104,15 +51,167 @@ function createDirs(){
             font-family: "Calibri";
         }
 
-        .go-visit-outer{
+        .group-header{
+            margin-bottom: 10px;
+        }
+        .dashboard-container.toggle-inner,
+        .toggle-inner{
             display: none;
         }
+
+        .container{
+            width: 1200px;
+            margin: auto;
+        }
+        .col{
+            float: left;
+            display: inline-block;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .dt6{
+            width: 50%;
+        }
+
+        .dt3{
+            width: 25%;
+        }
+        .dashboard-container{
+            background-color: #333;
+            display: inline-block;
+            overflow: auto;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .dashboard-container .widget-title{
+            margin: 0;
+            padding: 0;
+            color: white;
+            text-align: center;
+            margin: 0 0 10px 0;
+            font-family: "Calibri";
+        }
+
+        .dashboard-widget.gauge .widget-title{
+            margin: 0;
+            padding: 0;
+            color: white;
+            text-align: center;
+            margin: 10px 0;
+            z-index: 20;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-transform: uppercase;
+        }
+        .dashboard-widget.gauge .widget-title > .sub{
+            display: inline-block;
+            width: 100%;
+            font-size: 11px;
+        }
+
+        .dashboard-widget.gauge{
+            width: 200px;
+            height: 100px;
+            margin: 10px auto;
+        }
+
+        .dashboard-widget.gauge > .inner{
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            overflow: hidden;
+        }
+        .dashboard-widget.gauge > .inner:after{
+            content: "";
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            background-color: #333;
+            border-top-left-radius: 200px;
+            border-top-right-radius: 200px;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            margin: auto;
+        }
+
+        .dashboard-widget.gauge > .inner .gauge-value{
+            width: 100%;
+            height: 100%;
+            background-color: green;
+            border-top-left-radius: 200px;
+            border-top-right-radius: 200px;
+            transform: rotate(180deg);
+            transform-origin: 50% 100%;
+            transition: all 2s ease-in-out;
+            z-index: 2;
+        }
+        .dashboard-widget.gauge > .inner .gauge-indicator{
+            width: 50%;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            position: absolute;
+            margin: auto;
+            color: white;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .dashboard-widget.progress{
+            width: 100%;
+            padding: 0 10px 10px 10px;
+            box-sizing: border-box;
+        }
+        .dashboard-widget.progress > .inner{
+            position: relative;
+        }
+        .dashboard-widget.progress > .inner > .value{
+            width: 0;
+            transition: width 2s ease-in-out;
+        }
+
+        .dashboard-widget.progress > .inner > .indicator{
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            text-align: center;
+            color: white;
+        }
+
+
 
     </style>
 </head>
 <body>
-<div style="width: 50%; margin: 0 25%;">
-    <?=createDirs()?>
+    <section class='container'>
+        <div class='group-header' data-group='data'><h4>Statistics</h4>
+        <section class='dashboard-container toggle-inner'>
+        <div class='col dt6'>
+            <?=ServerWidget::createDriveSpaceWidget()?>
+        </div>
+        <div class='col dt6'>
+            <div class='col dt6'>
+                <?=ServerWidget::createRamPeakWidget()?>
+            </div>
+            <div class='col dt6'>
+                <?=ServerWidget::createRamCurrentWidget()?>
+            </div>
+            <div class='col dt6'>
+                <?=ServerWidget::createServerLoadWidget()?>
+            </div>
+        </div>
+        </section>
+    </section>
+<div class='container'>
+    <?=ProjectWidget::createDirs()?>
 </div>
 </body>
 <script>
@@ -126,16 +225,92 @@ $(function(){
         for(var i in item){
              elem = $('[data-group="'+i+'"]');
              if(elem.length > 0){
-                 $(elem.find('.go-visit-outer')).slideDown();
+                 $(elem.find('.toggle-inner')).slideDown();
              }
         }
     }
 });
-    $('.group-header').on('click', function(e){
+
+items = [];
+var interval;
+$(function(){
+    var i = 0;
+    $('.dashboard-widget.progress').each(function(e){
+        v = $(this).find('.value');
+        if(v.length > 0){
+            v[0].style.width = $(this).data('value') + "%";
+        }
+
+    });
+    $('.dashboard-widget.gauge').each(function(e){
+        am = $(this).find('.gauge-value');
+        val = am.data('value');
+
+        if(val < 10){
+            color = '#1C84A7';
+        } else if(val < 25){
+            color = 'gray';
+        } else if(val < 50){
+            color = '#FEC606';
+        } else if(val < 75){
+            color = '#FF7416';
+        } else if(val >= 75){
+            color = '#CF000F';
+        }
+
+
+        am[0].style.backgroundColor = color;
+
+        rot = 180 + parseInt(val) * 3.6 / 2;
+        am[0].parentNode.parentNode.setAttribute('id', 'widget-'+i);
+        am[0].style.transform = "rotate("+rot+"deg)";
+        obj = { id : i, elem: am[0].parentNode, targetValue: parseFloat(val).toFixed(2)};
+        items.push(obj);
+        i++;
+    });
+    interval = window.setInterval(function(e){
+        setValues();
+    },20);
+
+});
+function setValues(int){
+    for(var i in items){
+        item = items[i];
+        if(item == null){
+            continue;
+        }
+        indicator = $(item.elem).find('.gauge-indicator');
+
+        currentValue = parseFloat(indicator.data('value'));
+
+        targetValue = item.targetValue;
+        index = item.i;
+
+        valuePerTick = item.targetValue / 100;
+
+        newValue = currentValue + valuePerTick;
+        if(newValue > targetValue){
+            indicator[0].innerHTML = parseFloat(targetValue).toFixed(2) + "%";
+            indicator.data('value', targetValue);
+            items.splice(i, 1);
+            continue;
+        }
+
+
+        indicator[0].innerHTML = parseFloat(newValue).toFixed(2) + "%";
+        indicator.data('value', newValue);
+    }
+    if(items.length == '0'){
+        clearInterval(interval);
+    }
+}
+
+
+    $('.group-header > h4').on('click', function(e){
         item = JSON.parse(localStorage.getItem('active-groups'));
 
-        visit = $(this).find('.go-visit-outer');
-        key = $(this).data('group');
+        visit = $(this.parentNode).find('.toggle-inner');
+        key = $(this.parentNode).data('group');
 
         if(visit[0].style.display == 'block'){
             delete item[key];
