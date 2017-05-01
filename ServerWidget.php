@@ -1,6 +1,6 @@
 <?php
 class ServerWidget{
-    public function createRamPeakWidget(){
+    public static function createRamPeakWidget(){
         $peak = memory_get_peak_usage();
         $real = memory_get_usage(true);
         $perc = ($real / 100);
@@ -10,13 +10,14 @@ class ServerWidget{
             $out .= "<div class='inner'>";
                 $out .= "<h4 class='widget-title'>RAM<span class='sub'>(peak)</span></h4>";
                 $out .= "<div class='gauge-value' data-value='$peakPerc'></div>";
+                $out .= "<div class='gauge-inner'></div>";
                 $out .= "<div class='gauge-indicator' data-value='0'></div>";
             $out .= "</div>";
         $out .= "</div>";
 
         return $out;
     }
-    public function createRamCurrentWidget(){
+    public static function createRamCurrentWidget(){
         $real = memory_get_usage(true);
         $current = memory_get_usage();
         $perc = ($real / 100);
@@ -26,57 +27,54 @@ class ServerWidget{
             $out .= "<div class='inner'>";
             $out .= "<h4 class='widget-title'>RAM<span class='sub'>(current)</span></h4>";
                 $out .= "<div class='gauge-value' data-value='$realPerc'></div>";
+                $out .= "<div class='gauge-inner'></div>";
                 $out .= "<div class='gauge-indicator' data-value='0'></div>";
             $out .= "</div>";
         $out .= "</div>";
 
         return $out;
     }
-    public function createServerLoadWidget(){
-        $load = self::get_server_load();
-        $i = 1;
-        foreach($load as $core){
-            $out = "<div class='dashboard-widget gauge ram-current'>";
-                $out .= "<div class='inner'>";
-                $out .= "<h4 class='widget-title'>CPU<span class='sub'>($i)</span></h4>";
-                    $out .= "<div class='gauge-value' data-value='$core'></div>";
-                    $out .= "<div class='gauge-indicator' data-value='0'></div>";
+    public static function createServerLoadWidget(){
+        $cpuData = self::get_server_load();
+        $i = 0;
+        $max = count($cpuData) - 1;
+        $h = "calc(280px * " . ceil(( ($max + 1) / 4)) . ")";
+        $out = "<div style='height:$h; display: inline-block; width: 100%; margin-bottom: -12.5%'>";
+        foreach($cpuData as $core => $load){
+            $end = ($core == $max) ? true : false;
+            $text = ($end == true) ? 'TOTAL' : "CPU<span class='sub'>(#$core)";
+            $out .= "<div class='col dt3'>";
+            $out .= "<div class='filler'></div>";
+                $out .= "<div class='dashboard-widget gauge ram-current'>";
+                    $out .= "<div class='inner'>";
+                    $out .= "<h4 class='widget-title'>$text</span></h4>";
+                        $out .= "<div class='gauge-value' data-value='$load'></div>";
+                        $out .= "<div class='gauge-inner'></div>";
+                        $out .= "<div class='gauge-indicator' data-value='0'></div>";
+                    $out .= "</div>";
                 $out .= "</div>";
             $out .= "</div>";
             $i++;
         }
-
-
+        $out .= "</div>";
         return $out;
     }
 
 
     public static function get_server_load()
     {
-        $load=array();
-        if (stristr(PHP_OS, 'win'))
-        {
-            $wmi = new COM("Winmgmts://");
-            $server = $wmi->execquery("SELECT LoadPercentage FROM Win32_Processor");
-            $cpu_num = 0;
-            $load_total = 0;
-            foreach($server as $cpu)
-            {
-                $cpu_num++;
-                $load_total += $cpu->loadpercentage;
-            }
-
-            $load[]= round($load_total/$cpu_num);
-
+        $data       = [];
+        $wmi        = new COM("winmgmts:\\");
+        $cpu_cores  = $wmi->execquery("SELECT PercentProcessorTime FROM Win32_PerfFormattedData_PerfOS_Processor");
+        $i = 0;
+        foreach ($cpu_cores as $core) {
+            $data[$i] = $core->PercentProcessorTime;
+            $i++;
         }
-        else
-        {
-            $load = sys_getloadavg();
-        }
-        return $load;
+        return $data;
     }
 
-    public function createDriveSpaceWidget(){
+    public static function createDriveSpaceWidget(){
         $range = range('A', 'Z');
         $out = '';
         $fso = new COM('Scripting.FileSystemObject');
@@ -110,6 +108,7 @@ class ServerWidget{
 
             $base = log($free, 1024);
             $suffixes = array('', 'K', 'M', 'GB', 'T');
+            $precision = 2;
 
             $free = round(pow(1024, $base - floor($base)), $precision) .' '. $suffixes[floor($base)];
 
@@ -128,7 +127,7 @@ class ServerWidget{
             $out .= "<div class='dashboard-widget progress drive-space' data-value='$perc' data-min='0' data-max='100'>";
             $out .= "<h4 class='widget-title'>$name</span></h4>";
                 $out .= "<div class='inner'>";
-                    $out .= "<div class='value' style='height: 20px; background-color: $color;'></div>";
+                    $out .= "<div class='value' style='background-color: $color;'></div>";
                     $out .= "<div class='indicator'>$free/$total</div>";
                 $out .= "</div>";
             $out .= "</div>";

@@ -69,8 +69,19 @@ include("autoloader.php");
             box-sizing: border-box;
             position: relative;
         }
+        .dt12{
+            width: 100%;
+        }
         .dt6{
             width: 50%;
+        }
+        .dashboard-container .dt3{
+            padding-bottom: 25%;
+            margin-bottom: -12.5%;
+        }
+        .dashboard-container .dt6{
+            padding-bottom: 50%;
+            margin-bottom: -25%;
         }
 
         .dt3{
@@ -83,6 +94,7 @@ include("autoloader.php");
             width: 100%;
             box-sizing: border-box;
             position: relative;
+            overflow: hidden;
         }
 
         .dashboard-container .widget-title{
@@ -114,16 +126,24 @@ include("autoloader.php");
         }
 
         .dashboard-widget.gauge{
-            width: 200px;
-            height: 100px;
-            margin: 10px auto;
+            width: calc(100% - 20px);
+            height: calc(50% - 10px);
+            margin: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+        .dashboard-widget.gauge:after{
+            content: "";
+            height: 100%;
         }
 
         .dashboard-widget.gauge > .inner{
             position: relative;
             width: 100%;
             height: 100%;
-            background-color: #333;
             overflow: hidden;
         }
         .dashboard-widget.gauge > .inner:after{
@@ -132,28 +152,67 @@ include("autoloader.php");
             width: 80%;
             height: 80%;
             background-color: #333;
-            border-top-left-radius: 200px;
-            border-top-right-radius: 200px;
+            border-top-left-radius: 500px;
+            border-top-right-radius: 500px;
             left: 0;
             bottom: 0;
             right: 0;
             margin: auto;
         }
 
+        .dashboard-widget.gauge > .inner .gauge-inner{
+            content: "";
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-top-left-radius: 500px;
+            border-top-right-radius: 500px;
+            position: absolute;
+            background-color: transparent;
+        }
+
         .dashboard-widget.gauge > .inner .gauge-value{
             width: 100%;
             height: 100%;
             background-color: green;
-            border-top-left-radius: 200px;
-            border-top-right-radius: 200px;
+            border-top-left-radius: 500px;
+            border-top-right-radius: 500px;
             transform: rotate(180deg);
             transform-origin: 50% 100%;
             transition: all 2s ease-in-out;
-            z-index: 2;
+            z-index: 10;
         }
+        .dashboard-widget.gauge > .inner .gauge-value:before{
+            content: "";
+            width: 100%;
+            height: 200%;
+            border-radius: 5000000px;
+            background-color: #111;
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+        }
+        .dashboard-widget.gauge > .inner .gauge-value:after{
+            content: "";
+            width: 100%;
+            height: 100%;
+            border-top-left-radius: 500px;
+            border-top-right-radius: 500px;
+            background-color: inherit;
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+        }
+
+
         .dashboard-widget.gauge > .inner .gauge-indicator{
             width: 50%;
-            bottom: 0;
+            bottom: 4px;
             left: 0;
             right: 0;
             position: absolute;
@@ -170,10 +229,12 @@ include("autoloader.php");
         }
         .dashboard-widget.progress > .inner{
             position: relative;
+            background-color: #111;
         }
         .dashboard-widget.progress > .inner > .value{
             width: 0;
             transition: width 2s ease-in-out;
+            height: 34px;
         }
 
         .dashboard-widget.progress > .inner > .indicator{
@@ -184,6 +245,7 @@ include("autoloader.php");
             bottom: 0;
             text-align: center;
             color: white;
+            line-height: 34px;
         }
 
 
@@ -194,20 +256,21 @@ include("autoloader.php");
     <section class='container'>
         <div class='group-header' data-group='data'><h4>Statistics</h4>
         <section class='dashboard-container toggle-inner'>
-        <div class='col dt6'>
-            <?=ServerWidget::createDriveSpaceWidget()?>
-        </div>
-        <div class='col dt6'>
-            <div class='col dt6'>
-                <?=ServerWidget::createRamPeakWidget()?>
+            <div class='col dt12'>
+                <?=ServerWidget::createDriveSpaceWidget()?>
             </div>
-            <div class='col dt6'>
-                <?=ServerWidget::createRamCurrentWidget()?>
+            <div class='col dt12'>
+                <div class='col dt3'>
+                    <?=ServerWidget::createRamPeakWidget()?>
+                </div>
+                <div class='col dt3'>
+                    <?=ServerWidget::createRamCurrentWidget()?>
+                </div>
             </div>
-            <div class='col dt6'>
+            <!-- <div class='col dt12'> -->
                 <?=ServerWidget::createServerLoadWidget()?>
+            <!-- </div> -->
             </div>
-        </div>
         </section>
     </section>
 <div class='container'>
@@ -245,12 +308,9 @@ $(function(){
     $('.dashboard-widget.gauge').each(function(e){
         am = $(this).find('.gauge-value');
         val = am.data('value');
-
-        if(val < 10){
+        if(val <= 25){
             color = '#1C84A7';
-        } else if(val < 25){
-            color = 'gray';
-        } else if(val < 50){
+        } else if(val <= 50){
             color = '#FEC606';
         } else if(val < 75){
             color = '#FF7416';
@@ -258,7 +318,7 @@ $(function(){
             color = '#CF000F';
         }
 
-
+        console.log(val + " | " + color);
         am[0].style.backgroundColor = color;
 
         rot = 180 + parseInt(val) * 3.6 / 2;
